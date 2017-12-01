@@ -43,8 +43,8 @@ if(argv.init){
 	function addAssets(){
 		fs.mkdirSync(assetsPath);
 		Object.keys(assets).map((item)=>{
+			!fs.existsSync(path.resolve(assetsPath, item)) && fs.mkdirSync(path.resolve(assetsPath, item));
 			if(publicFn.isArray(assets[item].js)){
-				fs.mkdirSync(path.resolve(assetsPath, item));
 				fs.mkdirSync(path.resolve(assetsPath, item, 'js'));
 				assets[item].js.map((_item)=>{
 					fs.copyFile(path.resolve(__dirname, 'node_modules', item, _item), path.resolve(assetsPath, item, 'js', path.parse(_item).base), (err)=>{
@@ -53,7 +53,6 @@ if(argv.init){
 					});
 				});
 			}else if(typeof(assets[item].js) == 'string'){
-				fs.mkdirSync(path.resolve(assetsPath, item));
 				fs.mkdirSync(path.resolve(assetsPath, item, 'js'));
 				fs.copyFile(path.resolve(__dirname, 'node_modules', item, assets[item].js), path.resolve(assetsPath, item, 'js', path.parse(assets[item].js).base), (err)=>{
 					if(err) throw err;
@@ -61,7 +60,6 @@ if(argv.init){
 				});
 			};
 			if(publicFn.isArray(assets[item].css)){
-				fs.mkdirSync(path.resolve(assetsPath, item));
 				fs.mkdirSync(path.resolve(assetsPath, item, 'css'));
 				assets[item].css.map((_item)=>{
 					fs.copyFile(path.resolve(__dirname, 'node_modules', item, _item), path.resolve(assetsPath, item, 'css', path.parse(_item).base), (err)=>{
@@ -70,7 +68,6 @@ if(argv.init){
 					});
 				});
 			}else if(typeof(assets[item].css) == 'string'){
-				fs.mkdirSync(path.resolve(assetsPath, item));
 				fs.mkdirSync(path.resolve(assetsPath, item, 'css'));
 				fs.copyFile(path.resolve(__dirname, 'node_modules', item, assets[item].css), path.resolve(assetsPath, item, 'css', path.parse(assets[item].css).base), (err)=>{
 					if(err) throw err;
