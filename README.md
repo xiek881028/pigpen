@@ -70,11 +70,11 @@ npm run shell -- --del --name <页面名称>
 
 存放开发源码，基本上所有开发工作都在这个文件夹下进行。
 
-目录下的css用于存放scss源文件。
-目录下的font用于存放使用的字体文件。
-目录下的html用于存放pug源文件。
-目录下的images用于存放开发使用的图片文件。
-目录下的js用于存放开发js文件。
+  目录下的css用于存放scss源文件。
+  目录下的font用于存放使用的字体文件。
+  目录下的html用于存放pug源文件。
+  目录下的images用于存放开发使用的图片文件。
+  目录下的js用于存放开发js文件。
 
 - css目录下的reset.scss存放了css的初始化样式。_common.scss用于存放公共样式。
 - js目录下的_common.js用于存放公用交互。
