@@ -14,7 +14,7 @@
     "pigpen"
   ],
   "author": "bagazhu (http://www.bagazhu.com)",
-  "license": "MIT",
+  "license": "GPL",
   "homepage": "http://www.bagazhu.com",
   "devDependencies": {
     "yargs": "^10.0.3",
