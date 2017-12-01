@@ -1,6 +1,6 @@
 # pigpen
 
-pigpen是一个轻量型纯前端架构。适用于层级关系较简单，页面量较少的小型项目。[bagazhu.com](http://www.bagazhu.com)（未来会替换成pigpen的vue版）以及[不务正业系列](http://demo.bagazhu.com)基于此框架构建。
+pigpen是一个轻量级纯前端架构。适用于层级关系较简单，页面量较少的小型项目。[bagazhu.com](http://www.bagazhu.com)（未来会替换成pigpen的vue版）以及[不务正业系列](http://demo.bagazhu.com)基于此框架构建。
 
 pigpen使用的html模版为pug(jade)，css模版为scss，js依赖jquery。支持ES6写法。
 
