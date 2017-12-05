@@ -4,6 +4,8 @@ const path = require('path');
 const publicFn = require('./publicFn.js');
 const config = require('./config.local.js');
 
+const pkg = require('./package.json');
+
 const webpack = require('webpack');
 const webpackBabelPlugin = require('babel-webpack-plugin');
 const webpackEs3ifyPlugin = require('es3ify-webpack-plugin-v2');
@@ -151,6 +153,9 @@ class WebpackConfig {
 			plugins.push(new webpackHtmlPlugin({
 				title: {
 					min: this.min,
+					author: pkg.author,
+					keywords: pkg.keywords.join(', '),
+					description: pkg.description,
 					shims,
 				},
 				template: path.resolve(page),
