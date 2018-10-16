@@ -1,173 +1,159 @@
+/*!
+ * Webpack config
+ * create: 2018/09/08
+ * since: 0.0.1
+ */
 'use strict';
-const argv = require('yargs').argv;
-const path = require('path');
-const publicFn = require('./publicFn.js');
-const config = require('./config.local.js');
 
+const fs = require('fs-extra');
+const path = require('path');
+const webpack = require('webpack');
+const tool_node = require('./tools/node');
+const config = require('./config.local.js');
 const pkg = require('./package.json');
 
-const webpack = require('webpack');
-const webpackBabelPlugin = require('babel-webpack-plugin');
-const webpackEs3ifyPlugin = require('es3ify-webpack-plugin-v2');
-const webpackExtractTextPlugin = require('extract-text-webpack-plugin');
-const webpackHtmlPlugin = require('html-webpack-plugin');
+const WebpackMiniCssExtractPlugin = require('mini-css-extract-plugin');
+const WebpackOptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const WebpackUglifyjsPlugin = require('uglifyjs-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const shims = '<!--[if lt IE 9]><script type="text/javascript" src="./assets/html5shiv/html5shiv.min.js"></script><script type="text/javascript" src="./assets/respond.js/respond.min.js"></script><script type="text/javascript" src="./assets/es5-shim/es5-shim.min.js"></script><script type="text/javascript" src="./assets/es5-shim/es5-sham.min.js"></script><![endif]-->';
+const shims = '<!--[if lt IE 9]><script type="text/javascript" src="./assets/html5shiv/js/html5shiv.min.js"></script><script type="text/javascript" src="./assets/respond.js/js/respond.min.js"></script><script type="text/javascript" src="./assets/json3/js/json3.min.js"></script><script type="text/javascript" src="./assets/es5-shim/js/es5-shim.min.js"></script><script type="text/javascript" src="./assets/es5-shim/js/es5-sham.min.js"></script><![endif]-->';
 
-class WebpackConfig {
-	constructor() {
-		this.jsPath = path.resolve(__dirname, 'src/js');
-		this.htmlPath = path.resolve(__dirname, 'src/html');
-		this.jsTree = publicFn.fileTree(this.jsPath);
-		this.pageTree = publicFn.fileTree(this.htmlPath);
-		this.prod = argv.optimizeMinimize;
-		this.min = this.prod ? '.min' : '';
-		return this.init();
-	}
+module.exports = (env, argv) => {
+  const out_base_path = 'dist';
+  const in_base_path = 'src';
+  const base_path = __dirname;
+  const entry_path = `${base_path}/${in_base_path}/js`;
+  const output_path = `${base_path}/${out_base_path}/js`;
+  const htmlPath = path.resolve(base_path, 'src/html');
+  const pageTree = tool_node.fileTree(htmlPath);
+  const htmlArr = [];
+  const prod = argv.mode == 'production';
+  const min = prod ? '.min' : '';
 
-	init() {
-		return {
-			entry: this.entry(),
-			output: this.output(),
-			module: this.module(),
-			resolve: this.resolve(),
-			externals: this.externals(),
-			plugins: this.plugins(),
-		};
-	}
+  let entries = {};
+  fs.readdirSync(entry_path).forEach(filename => {
+    if (!fs.statSync(`${entry_path}/${filename}`).isFile()) return;
 
-	entry() {
-		let _entry = {};
-		this.jsTree.map((item)=>{
-			let _parse = path.parse(path.relative(this.jsPath, item));
-			_entry[path.join(_parse.dir, `./${_parse.name}`)] = item;
-		});
-		return _entry;
-	}
+    let name = path.parse(filename).name;
+    entries[name] = `${entry_path}/${name}`;
+  });
 
-	output() {
-		return {
-			path: path.resolve(__dirname, 'dist/js'),
-			filename: `[name]${this.min}.js`,
-		};
-	}
-
-	module() {
-		return {
-			rules: [
-				{
-					test: /\.pug$/,
-					use: ['pug-loader'],
-				},
-				{
-					test: /\.scss$/,
-					use: webpackExtractTextPlugin.extract({
-						fallback: 'style-loader',
-						use: [
-							'css-loader?sourceMap',
-							//不需要CSS Sprite功能 解开下面注释 同时注释'postcss-loader?sourceMap'
-							// {
-							// 	loader: 'postcss-loader',
-							// 	options: {
-							// 		plugins: [
-							// 			require('autoprefixer')(),
-							// 		],
-							// 		sourceMap: true,
-							// 	},
-							// },
-							'postcss-loader?sourceMap',
-							'sass-loader?sourceMap',
-						],
-					}),
-				},
-				{
-					test: /\.js$/,
-					use: ['babel-loader'],
-					exclude: /node_modules/,
-				},
-				{
-					test: /\.(gif|jpe?g|png)(\?.*)?$/,
-					use: [
-						{
-							loader: 'url-loader',
-							options: {
-								limit: 8192,
-								name: '../images/[name].[ext]',
-							},
-						},
-					],
-				},
-				{
-					test: /\.(ttc|ttf|woff)(\?.*)?$/,
-					use: [
-						{
-							loader: 'url-loader',
-							options: {
-								limit: 8192,
-								name: '../font/[name].[ext]',
-							},
-						},
-					],
-				},
-			],
-		};
-	}
-
-	resolve() {
-		return {};
-	}
-
-	externals() {
-		return {
-			jquery: '$',
-			json3: 'JSON3',
-		};
-	}
-
-	plugins() {
-		let plugins = [
-			new webpack.DefinePlugin({'process.env': {NODE_ENV: `'${this.env}'`}}),
-			new webpackExtractTextPlugin(path.join('../css', `[name]${this.min}.css`)),
-			new webpackBabelPlugin(),
-			new webpackEs3ifyPlugin(),
-		];
-
-		if(this.prod) {
-			plugins.push(new webpack.optimize.CommonsChunkPlugin({name: 'common', minChunks: 2}));
-			plugins.push(new webpack.optimize.UglifyJsPlugin({
-				comments: false,
-				compress: {
-					properties: false,
-					warnings: false,
-				},
-				sourceMap: true,
-			}));
-		}
-
-		this.pageTree.forEach((page) => {
-			let _pages = path.parse(path.relative(this.htmlPath, page));
-			let pageName = path.parse(page).name;
-			for(let i=0,max=config.pageignore.length; i<max; i++){
-				if(pageName == config.pageignore[i])return;
-			}
-			plugins.push(new webpackHtmlPlugin({
-				title: {
-					min: this.min,
-					author: pkg.author,
-					keywords: pkg.keywords.join(', '),
-					description: pkg.description,
-					shims,
-				},
-				template: path.resolve(page),
-				filename: path.resolve(__dirname, 'dist', `${path.join(_pages.dir, `./${_pages.name}`)}.html`),
-				inject: false,
-			}));
-		});
-
-		return plugins;
-	}
-}
-
-module.exports = () => {
-	return new WebpackConfig();
+  pageTree.forEach(page => {
+    let _pages = path.parse(path.relative(htmlPath, page));
+    let pageName = path.parse(page).name;
+    for(let i=0,max=config.pageignore.length; i<max; i++){
+      if(pageName == config.pageignore[i]) return;
+    }
+    htmlArr.push(new HtmlWebpackPlugin({
+      title: {
+        min,
+        author: pkg.author,
+        keywords: pkg.keywords.join(', '),
+        description: pkg.description,
+        shims,
+      },
+      template: path.resolve(page),
+      filename: path.resolve(base_path, out_base_path, `${path.join(_pages.dir, `./${_pages.name}`)}.html`),
+      inject: false,
+    }));
+  });
+  return {
+    entry: entries,
+    output: {
+      path: output_path,
+      filename: `[name]${min}.js`,
+    },
+    resolve: {
+      alias: {
+      },
+    },
+    externals: {
+      json3: 'JSON3',
+      jquery: 'jQuery',
+    },
+    module: {
+      rules: [
+        {
+          test: /\.pug$/,
+          use: ['pug-loader'],
+        },
+        {
+          test: /\.css$/,
+          use: [
+            WebpackMiniCssExtractPlugin.loader,
+            'css-loader?sourceMap',
+            'postcss-loader?sourceMap',
+          ],
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            WebpackMiniCssExtractPlugin.loader,
+            'css-loader?sourceMap',
+            'postcss-loader?sourceMap',
+            'sass-loader?sourceMap',
+          ],
+        },
+        {
+          test: /\.js?$/,
+          use: ['babel-loader'],
+          exclude: /node_modules/,
+        },
+        {
+          test: /\.(gif|jpe?g|png)(\?.*)?$/,
+          use: [
+            {
+              loader: 'url-loader',
+              options: {
+                fallback: 'file-loader',
+                limit: 8192,
+                name: '../images/[name].[ext]',
+              },
+            },
+          ],
+        },
+        {
+          test: /\.(ttc|ttf|woff|eot|svg|woff2|otf)(\?.*)?$/,
+          use: [
+            {
+              loader: 'url-loader',
+              options: {
+                fallback: 'file-loader',
+                limit: 8192,
+                name: '../fonts/[name].[ext]',
+              },
+            },
+          ],
+        },
+      ],
+    },
+    optimization: {
+      minimizer: [
+        new WebpackUglifyjsPlugin({
+          uglifyOptions: {
+            output: { comments: false },
+            ie8: true,
+          },
+        }),
+        new WebpackOptimizeCSSAssetsPlugin({
+          cssProcessorOptions: { discardComments: { removeAll: true } },
+        }),
+      ],
+      splitChunks: {
+        cacheGroups: {
+          common: {
+            chunks: 'all',
+            minChunks: 2,
+            minSize: 1,
+            name: 'common',
+          },
+        },
+      },
+    },
+    plugins: [
+      new webpack.optimize.OccurrenceOrderPlugin(),
+      new WebpackMiniCssExtractPlugin({ filename: `../css/[name]${min}.css` }),
+    ].concat(htmlArr),
+  };
 };
