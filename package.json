@@ -13,9 +13,9 @@
     "bagazhu",
     "pigpen"
   ],
-  "author": "caih",
+  "author": "xiek881028(285985285@qq.com)",
   "license": "MIT",
-  "homepage": "http://www.caih.com",
+  "homepage": "http://www.bagazhu.com",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
